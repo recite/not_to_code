@@ -127,6 +127,15 @@ Stata. Macro-built commands retain lexical measurements but not structural ones.
 Python syntax is interpreted by the recorded Python 3 runtime; Python 2 syntax
 may retain token measurements while structural parsing fails. Only formal
 module/class/function docstrings are excluded, not arbitrary string expressions.
+Python f-string and template-string literal fragments retain whitespace in exact
+tokens and receive typed placeholders in normalized tokens. Token boundaries can
+differ across Python runtime versions, which are recorded in each run.
+
+Notebook cells with absent language metadata remain unattributed; explicitly
+declared unsupported languages retain their names in coverage. Cell magics can
+identify a supported language independently. Literate chunks retain unsupported
+engines and empty chunks; chunk-level `engine=` overrides remain unattributed
+because the instrument does not evaluate those options.
 
 Portability recognition is deliberately narrow: a literal in the first positional
 argument of a listed Python/R filesystem-call spelling, or a quoted literal in

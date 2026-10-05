@@ -83,7 +83,16 @@ def python_tokens(a: Analysis) -> None:
             elif t.type in {tokenize.STRING, tokenize.NUMBER}:
                 kind = "string" if t.type == tokenize.STRING else "number"
                 normalized = f"<{kind}>"
-            if not value.strip():
+            elif tokenize.tok_name[t.type] in {"FSTRING_MIDDLE", "TSTRING_MIDDLE"}:
+                normalized, kind = "<string>", "string_fragment"
+            elif tokenize.tok_name[t.type] in {
+                "FSTRING_START",
+                "FSTRING_END",
+                "TSTRING_START",
+                "TSTRING_END",
+            }:
+                normalized = f"<{tokenize.tok_name[t.type]}>"
+            if not value.strip() and kind != "string_fragment":
                 continue
             a.tokens.append(
                 Token(value, normalized, t.start[0], t.start[1] + 1, t.end[0], kind)

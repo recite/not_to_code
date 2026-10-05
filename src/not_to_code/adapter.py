@@ -1,9 +1,9 @@
 """Read-only adapter to the explicitly supported Softverse source instrument."""
 
 import importlib
-import inspect
 import io
 import json
+import re
 import sys
 import tokenize
 from pathlib import Path
@@ -26,10 +26,60 @@ class Softverse:
         self.notebooks = importlib.import_module("softverse.detect.notebooks")
         self.stata = importlib.import_module("softverse.stata.lexer")
         self.dispatch = importlib.import_module("softverse.detect.dispatch")
-        if list(inspect.signature(self.notebooks.split_chunks).parameters) != [
-            "source"
-        ]:
-            raise ValueError("Softverse chunk interface changed")
+
+    def language_name(self, name) -> str:
+        name = str(name or "").strip().lower()
+        return str(self.notebooks._ENGINE_LANGUAGE.get(name, name or "unknown"))
+
+    def literate_units(self, uid: str, source: str) -> list[Unit]:
+        out = []
+        current = None
+        closer = None
+        lines = []
+        for number, line in enumerate(source.splitlines(), 1):
+            if current is None:
+                match = self.notebooks._CHUNK_OPEN.match(line)
+                sweave = self.notebooks._RNW_OPEN.match(line)
+                if not match and not sweave:
+                    continue
+                header = (match or sweave)[1]
+                if match:
+                    parts = header.strip().split(",", 1)[0].split()
+                    language = self.language_name(parts[0] if parts else None)
+                    label = parts[1] if len(parts) > 1 else None
+                    fence = re.match(r"\s*(`{3,}|~{3,})", line)[1]
+                    closer = re.compile(
+                        r"^\s*"
+                        + re.escape(fence[0])
+                        + "{"
+                        + str(len(fence))
+                        + r",}\s*$"
+                    )
+                else:
+                    language, label = "r", header.split(",")[0] or None
+                    closer = self.notebooks._RNW_CLOSE
+                if re.search(r"\bengine\s*=", header):
+                    language = "unknown"
+                current = Unit(
+                    f"{uid}:chunk:{len(out)}",
+                    uid,
+                    language,
+                    "",
+                    number + 1,
+                    chunk_label=label,
+                )
+                lines = []
+            elif closer.match(line):
+                current.source = "\n".join(lines)
+                out.append(current)
+                current = None
+            else:
+                lines.append(line)
+        if current is not None:
+            current.source = "\n".join(lines)
+            current.incomplete = True
+            out.append(current)
+        return out
 
     def units(self, row: dict, source: str) -> list[Unit]:
         language = row["language"]
@@ -37,16 +87,7 @@ class Softverse:
         if language in LANGUAGES:
             return [Unit(uid, uid, language, source)]
         if language == "rmarkdown":
-            chunks = self.notebooks.split_chunks(source)
-            out = [
-                Unit(f"{uid}:chunk:{i}", uid, str(lang), code, line, chunk_label=label)
-                for i, (lang, code, line, label) in enumerate(chunks)
-            ]
-            if out:
-                last = out[-1]
-                end = last.first_line + len(last.source.splitlines()) - 1
-                if end >= len(source.splitlines()):
-                    last.incomplete = True
+            out = self.literate_units(uid, source)
             # Inline expressions are units; they must not disappear from coverage.
             for line, text in enumerate(source.splitlines(), 1):
                 for i, match in enumerate(self.notebooks._INLINE_R.finditer(text)):
@@ -74,7 +115,11 @@ class Softverse:
             return out
         if language == "notebook":
             payload = json.loads(source)
-            lang = str(self.notebooks._notebook_language(payload))
+            metadata = payload.get("metadata") or {}
+            lang = self.language_name(
+                (metadata.get("kernelspec") or {}).get("language")
+                or (metadata.get("language_info") or {}).get("name")
+            )
             cells = payload.get("cells")
             if cells is None:
                 cells = [
@@ -111,7 +156,13 @@ class Softverse:
                         for token in tokenize.generate_tokens(
                             io.StringIO(code).readline
                         ):
-                            if token.type in {tokenize.STRING, tokenize.COMMENT}:
+                            if token.type in {
+                                tokenize.STRING,
+                                tokenize.COMMENT,
+                            } or tokenize.tok_name[token.type] in {
+                                "FSTRING_MIDDLE",
+                                "TSTRING_MIDDLE",
+                            }:
                                 magic_lines.difference_update(
                                     range(token.start[0], token.end[0] + 1)
                                 )
