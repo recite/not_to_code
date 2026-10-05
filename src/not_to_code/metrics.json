@@ -1,0 +1,240 @@
+{
+  "clone_exact_within_30": {
+    "dimension": "duplication",
+    "definition": "Exact 30-token match union coverage, within file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_exact_between_30": {
+    "dimension": "duplication",
+    "definition": "Exact 30-token match union coverage, between file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_exact_union_30": {
+    "dimension": "duplication",
+    "definition": "Exact 30-token match union coverage, union file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_normalized_increment_30": {
+    "dimension": "duplication",
+    "definition": "Additional coverage after replacing identifiers/literals at 30 tokens",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_exact_within_50": {
+    "dimension": "duplication",
+    "definition": "Exact 50-token match union coverage, within file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_exact_between_50": {
+    "dimension": "duplication",
+    "definition": "Exact 50-token match union coverage, between file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_exact_union_50": {
+    "dimension": "duplication",
+    "definition": "Exact 50-token match union coverage, union file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_normalized_increment_50": {
+    "dimension": "duplication",
+    "definition": "Additional coverage after replacing identifiers/literals at 50 tokens",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_exact_within_100": {
+    "dimension": "duplication",
+    "definition": "Exact 100-token match union coverage, within file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_exact_between_100": {
+    "dimension": "duplication",
+    "definition": "Exact 100-token match union coverage, between file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_exact_union_100": {
+    "dimension": "duplication",
+    "definition": "Exact 100-token match union coverage, union file scope",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "clone_normalized_increment_100": {
+    "dimension": "duplication",
+    "definition": "Additional coverage after replacing identifiers/literals at 100 tokens",
+    "denominator": "tokens",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "file_count": {
+    "dimension": "organization",
+    "definition": "Included candidate files",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "inventory"
+  },
+  "code_lines": {
+    "dimension": "organization",
+    "definition": "Code lines",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "token_count": {
+    "dimension": "organization",
+    "definition": "Code and structural tokens",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "median_file_lines": {
+    "dimension": "organization",
+    "definition": "Median code lines per measured file",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "largest_file_share": {
+    "dimension": "organization",
+    "definition": "Largest measured file code lines / measured code lines",
+    "denominator": "code_lines",
+    "scale": 1,
+    "coverage": "token"
+  },
+  "routine_count": {
+    "dimension": "structure",
+    "definition": "Named and anonymous routines/programs",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "structure"
+  },
+  "median_routine_lines": {
+    "dimension": "structure",
+    "definition": "Median routine code-line length",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "structure"
+  },
+  "max_routine_lines": {
+    "dimension": "structure",
+    "definition": "Maximum routine code-line length",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "structure"
+  },
+  "branch_count": {
+    "dimension": "structure",
+    "definition": "Recognized control-flow constructs",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "structure"
+  },
+  "max_nesting": {
+    "dimension": "structure",
+    "definition": "Maximum control-flow nesting, reset at routine boundaries",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "structure"
+  },
+  "top_level_share": {
+    "dimension": "structure",
+    "definition": "Code lines outside all routines",
+    "denominator": "code_lines",
+    "scale": 1,
+    "coverage": "structure"
+  },
+  "line_over_100": {
+    "dimension": "formatting",
+    "definition": "line over 100 findings per 1,000 measured code lines",
+    "denominator": "code_lines",
+    "scale": 1000,
+    "coverage": "token"
+  },
+  "trailing_whitespace": {
+    "dimension": "formatting",
+    "definition": "trailing whitespace findings per 1,000 measured code lines",
+    "denominator": "code_lines",
+    "scale": 1000,
+    "coverage": "token"
+  },
+  "mixed_indentation": {
+    "dimension": "formatting",
+    "definition": "mixed indentation findings per 1,000 measured code lines",
+    "denominator": "code_lines",
+    "scale": 1000,
+    "coverage": "token"
+  },
+  "absolute_path": {
+    "dimension": "portability",
+    "definition": "absolute path findings per 1,000 measured code lines",
+    "denominator": "code_lines",
+    "scale": 1000,
+    "coverage": "token"
+  },
+  "path_like_literal": {
+    "dimension": "portability",
+    "definition": "path like literal findings per 1,000 measured code lines",
+    "denominator": "code_lines",
+    "scale": 1000,
+    "coverage": "token"
+  },
+  "working_directory_change": {
+    "dimension": "portability",
+    "definition": "working directory change findings per 1,000 measured code lines",
+    "denominator": "code_lines",
+    "scale": 1000,
+    "coverage": "token"
+  },
+  "dependency_declaration": {
+    "dimension": "environment",
+    "definition": "Presence of observed dependency declaration evidence",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "environment"
+  },
+  "version_constraint": {
+    "dimension": "environment",
+    "definition": "Presence of observed version constraint evidence",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "environment"
+  },
+  "locked_dependency": {
+    "dimension": "environment",
+    "definition": "Presence of observed locked dependency evidence",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "environment"
+  },
+  "bundled_dependency": {
+    "dimension": "environment",
+    "definition": "Presence of observed bundled dependency evidence",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "environment"
+  },
+  "interpreter_version": {
+    "dimension": "environment",
+    "definition": "Presence of observed interpreter version evidence",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "environment"
+  }
+}

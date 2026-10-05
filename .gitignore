@@ -39,8 +39,7 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
+# Generated reports live in build/.
 
 # translation temp files
 po/*~
@@ -52,3 +51,9 @@ rsconnect/
 
 data/
 
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+build/
+dist/

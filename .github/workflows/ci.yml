@@ -1,0 +1,28 @@
+name: checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.14']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/checkout@v7
+        with:
+          repository: recite/softverse
+          ref: 38fdba9b255127b896ab68bf37871b92e729fd0c
+          path: softverse-source
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install . --group dev
+      - run: make check
+        env:
+          SOFTVERSE_ROOT: ${{ github.workspace }}/softverse-source
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check --strict dist/*
