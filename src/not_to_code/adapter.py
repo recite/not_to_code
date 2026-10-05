@@ -92,7 +92,7 @@ class Softverse:
             for line, text in enumerate(source.splitlines(), 1):
                 for i, match in enumerate(self.notebooks._INLINE_R.finditer(text)):
                     if any(
-                        u.chunk_label != "inline"
+                        u.uid.startswith(f"{uid}:chunk:")
                         and u.first_line
                         <= line
                         < u.first_line + len(u.source.splitlines())

@@ -85,3 +85,12 @@ def test_literate_fences_match_opening_character_and_length(adapter):
     assert not units[0].incomplete
     assert units[1].language == "r"
     assert units[1].source == "1"
+
+
+def test_chunk_named_inline_does_not_extract_expressions_from_comments(adapter):
+    units = adapter.units(
+        dict(file_uid="a", language="rmarkdown"),
+        "```{r inline}\n# example `r 1 + 1`\nx <- 1\n```\n",
+    )
+    assert len(units) == 1
+    assert units[0].chunk_label == "inline"
