@@ -120,19 +120,19 @@ deposits, and repetition is not necessarily a refactoring opportunity.
 
 <!-- results:start -->
 
-Run `1d32aa37dbab`; 13,982 deposits. Equal-deposit medians among complete measurements.
+Run `db2f4b774418`; 13,982 deposits. Equal-deposit medians among complete measurements.
 
 | Language | Property | Median | Complete / eligible deposits |
 |---|---|---:|---:|
-| python | clone_exact_union_50 | 0.1428 | 789 / 954 |
-| python | largest_file_share | 0.5123 | 789 / 954 |
-| python | max_nesting | 3 | 695 / 954 |
-| r | clone_exact_union_50 | 0.273 | 6124 / 6500 |
-| r | largest_file_share | 0.6318 | 6124 / 6500 |
-| r | max_nesting | 1 | 6145 / 6500 |
-| stata | clone_exact_union_50 | 0.2169 | 7083 / 8956 |
-| stata | largest_file_share | 0.8458 | 7083 / 8956 |
-| stata | max_nesting | 1 | 6827 / 8956 |
+| python | clone_exact_union_50 | 0.1449 | 779 / 947 |
+| python | largest_file_share | 0.5098 | 779 / 947 |
+| python | max_nesting | 3.5 | 688 / 947 |
+| r | clone_exact_union_50 | 0.273 | 6118 / 6500 |
+| r | largest_file_share | 0.6318 | 6118 / 6500 |
+| r | max_nesting | 1 | 6139 / 6500 |
+| stata | clone_exact_union_50 | 0.2169 | 7081 / 8956 |
+| stata | largest_file_share | 0.8452 | 7081 / 8956 |
+| stata | max_nesting | 1 | 6825 / 8956 |
 
 <!-- results:end -->
 

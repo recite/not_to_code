@@ -69,6 +69,30 @@ dictionary changes when reporting old results; these also received targeted fixe
 Final container checks also cover multiple inline expressions on one line and
 unrecognized notebook magics.
 
+For the first release, a separate GPT-6 Astra reviewer tested an isolated checkout
+of candidate `9132d5a` and found three defects: unsupported notebook kernels could
+be attributed to Python, unsupported literate engines could disappear, and Python
+f-string token handling could discard literal whitespace or miss normalized
+matches. Seven added regression cases failed before repair. The reviewer verified
+all three repairs at commit `d25da85`, reran the original reproductions, and ran
+the complete suite against both the checkout and an installed wheel. No reviewed
+defect remained open. Missing notebook-language metadata now remains unattributed;
+unsupported literate engines remain visible in coverage. A final regression
+identified confusion between a chunk named `inline` and an inline expression;
+the instrument now distinguishes them by unit identity. The same independent
+reviewer reproduced and verified this repair at `4a9d252`, passing all 58 package
+tests and the original three reviewer reproductions.
+
+Release checks passed 58 tests on Python 3.13.2 locally and on Python 3.11 in
+Docker, and 59 on Python 3.14 in Docker. The extra Python 3.14 case exercises
+template-string literals, which that runtime adds. All three environments passed
+Black, isort and flake8. At `d25da85`, the independent reviewer also passed 57
+package tests and three separate reproduction tests against the wheel, with no
+skipped tests. Final artifact checks cover the subsequent unit-identity repair.
+GitHub CI at the repaired commit passed both supported-version jobs, including
+builds and strict package-description checks. Final release metadata identifies
+the publication commit and its CI run.
+
 ## Reproducibility
 
 `make check` and `make ci-docker` are the local checks. The pipeline records source,
@@ -76,21 +100,21 @@ input-table, instrument and specification hashes. Reports verify table hashes an
 the dictionary hash, reconcile output row counts, check metric key uniqueness and
 bound clone proportions. Rerunning assessment verifies cached source hashes.
 
-The completed run on 2026-10-04 has fingerprint
-`1d32aa37dbabbf8cb0ce994c9f1c56be8b295ddc0909678d325a38eab1db40c6`.
+The completed release run on 2026-10-04 has fingerprint
+`db2f4b7744186332afa3420482aca8301c7940868548a8305169a3635ca63c60`.
 It assessed 13,982 deposits and retained all 447,257 in-frame inventory rows in
-the ledger. Outputs contain 340,314 source units, 1,114,146 metric rows,
-6,193,896 findings and 7,231,274 clone-span rows. These are output records,
+the ledger. Outputs contain 341,271 source units, 1,113,670 metric rows,
+6,193,399 findings and 7,229,458 clone-span rows. These are output records,
 not counts of defects or independent refactoring opportunities. Completion
 checks reconciled the inventory, deposit caches and output row counts, verified
 every output hash, and confirmed that input, upstream, instrument, specification
 and runtime hashes still matched the starting contract.
 
-All 48 tests passed locally on Python 3.13.2 and in standard Docker images on
-Python 3.11 and 3.14; Black, isort and flake8 also passed in each environment.
-The current 100-deposit pilot reproduced all five Parquet output hashes on rerun.
-The full run was performed once; pilot determinism does not establish that every
-full-frame source has been independently reviewed.
+The final 100-deposit pilot reproduced all five Parquet output hashes on rerun.
+The final instrument's full run was performed once. Its five table hashes also
+match the preceding full development run: the final chunk-label repair did not
+change measurements in this recovered corpus. Pilot determinism and corpus
+agreement do not establish that every source has been independently reviewed.
 
 Full-frame results should always be read with the generated coverage tables and
 the exclude-uncertain sensitivity. Excerpt review is not sufficient evidence to
