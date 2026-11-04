@@ -73,6 +73,19 @@ FIELDS = {
         ("eligible_units", I),
         ("measured_units", I),
     ],
+    "native": [
+        ("file_uid", S),
+        ("unit_uid", S),
+        ("language", S),
+        ("tool", S),
+        ("status", S),
+        ("source_sha256", S),
+        ("first_line", I),
+        ("first_col", I),
+        ("cell_index", I),
+        ("chunk_label", S),
+        ("result", S),
+    ],
 }
 SCHEMAS = {name: pa.schema(BASE + fields) for name, fields in FIELDS.items()}
 

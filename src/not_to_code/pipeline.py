@@ -19,6 +19,7 @@ from .assessment import assess_language
 from .findings import measure_findings
 from .lexical import tokenize_unit
 from .model import Analysis, Unit
+from .native import analyze_unit, assess_native, tool_contract
 from .storage import SCHEMAS, Tables
 from .structure import measure_structure
 
@@ -98,7 +99,9 @@ def environment_index(root, file_dois):
     return result
 
 
-def instrument(root, limit):
+def instrument(
+    root, limit, r_tools=None, language=None, recover_release=False, deposit_list=None
+):
     package = Path(__file__).parent
     specification = package / "measurement.md"
     if not specification.exists():
@@ -126,8 +129,15 @@ def instrument(root, limit):
         ]
     }
     versions["python"] = platform.python_version()
+    if (root / "build/release/corpus/deposits.parquet").exists():
+        inputs.append("build/release/corpus/deposits.parquet")
+    if recover_release:
+        inputs.extend(
+            str(p.relative_to(root))
+            for p in sorted((root / "build/release/corpus/contents").glob("*.parquet"))
+        )
     contract = dict(
-        schema_version=1,
+        schema_version=2,
         specification_hash=digest(specification),
         softverse_root=str(root),
         deposit_limit=limit,
@@ -139,6 +149,10 @@ def instrument(root, limit):
             if p.suffix in {".py", ".json"}
         },
         versions=versions,
+        r_tools=tool_contract(r_tools),
+        language=language,
+        recover_release=recover_release,
+        deposit_list_hash=digest(deposit_list) if deposit_list else None,
     )
     contract["fingerprint"] = hashlib.sha256(
         json.dumps(contract, sort_keys=True).encode()
@@ -146,10 +160,13 @@ def instrument(root, limit):
     return contract
 
 
-def process_deposit(rows, adapter, environment):
+def process_deposit(
+    rows, adapter, environment, r_tools=None, native_cache=None, language_filter=None
+):
     result = {name: [] for name in SCHEMAS}
     analyses = []
     included = {}
+    native_records = {}
     base = {
         key: rows[0][key]
         for key in ("dataset_version_uid", "dataset_doi", "collection_id")
@@ -203,6 +220,31 @@ def process_deposit(rows, adapter, environment):
                     a.findings.clear()
                     a.detail = f"Instrument could not analyze: {exc}"
             analyses.append(a)
+            if unit.language in {"r", "unknown", "notebook", "rmarkdown"}:
+                native_records[unit.uid] = analyze_unit(
+                    unit, entry["read_status"] == "complete", r_tools, native_cache
+                )
+                for tool, native in native_records[unit.uid].items():
+                    result["native"].append(
+                        dict(
+                            base,
+                            file_uid=unit.file_uid,
+                            unit_uid=unit.uid,
+                            language=unit.language,
+                            tool=tool,
+                            status=native["status"],
+                            source_sha256=(
+                                hashlib.sha256(unit.source.encode()).hexdigest()
+                                if entry["read_status"] == "complete"
+                                else None
+                            ),
+                            first_line=unit.first_line,
+                            first_col=unit.first_col,
+                            cell_index=unit.cell_index,
+                            chunk_label=unit.chunk_label,
+                            result=json.dumps(native, sort_keys=True),
+                        )
+                    )
             result["units"].append(
                 dict(
                     base,
@@ -232,6 +274,8 @@ def process_deposit(rows, adapter, environment):
             )
             result["findings"].extend(dict(base, **finding) for finding in a.findings)
     for language in sorted(LANGUAGES):
+        if language_filter and language != language_filter:
+            continue
         previous = None
         for variant in ("primary", "exclude_uncertain"):
             if previous is not None and "uncertain" not in included.values():
@@ -249,10 +293,24 @@ def process_deposit(rows, adapter, environment):
             previous = metrics, clones
             result["metrics"].extend(dict(base, **m) for m in metrics)
             result["clones"].extend(dict(base, **m) for m in clones)
+            if language == "r":
+                result["metrics"].extend(
+                    dict(base, **m)
+                    for m in assess_native(analyses, included, native_records, variant)
+                )
     return result
 
 
-def cached_deposit(root, cache, group, environment, return_path=False):
+def cached_deposit(
+    root,
+    cache,
+    group,
+    environment,
+    return_path=False,
+    r_tools=None,
+    native_cache=None,
+    language_filter=None,
+):
     adapter = Softverse(root)
     warnings.filterwarnings("ignore", category=SyntaxWarning)
     key = group[0]["dataset_version_uid"]
@@ -271,7 +329,9 @@ def cached_deposit(root, cache, group, environment, return_path=False):
             ):
                 raise ValueError("Cached source changed; choose a new output directory")
     else:
-        result = process_deposit(group, adapter, environment)
+        result = process_deposit(
+            group, adapter, environment, r_tools, native_cache, language_filter
+        )
         temp = filename.with_suffix(".tmp")
         with gzip.open(temp, "wt") as handle:
             json.dump(result, handle, sort_keys=True)
@@ -279,14 +339,14 @@ def cached_deposit(root, cache, group, environment, return_path=False):
     return filename if return_path else result
 
 
-def ordered_results(root, cache, jobs, workers):
+def ordered_results(root, cache, jobs, workers, **options):
     if workers == 1:
         for group, environment in jobs:
-            yield cached_deposit(root, cache, group, environment)
+            yield cached_deposit(root, cache, group, environment, **options)
         return
     with ProcessPoolExecutor(max_workers=workers) as executor:
         completed = executor.map(
-            partial(cached_deposit, root, cache, return_path=True),
+            partial(cached_deposit, root, cache, return_path=True, **options),
             (job[0] for job in jobs),
             (job[1] for job in jobs),
         )
@@ -295,10 +355,19 @@ def ordered_results(root, cache, jobs, workers):
                 yield json.load(handle)
 
 
-def assess(root, output, limit=None, workers=1):
+def assess(
+    root,
+    output,
+    limit=None,
+    workers=1,
+    r_tools=None,
+    language=None,
+    recover_release=False,
+    deposit_list=None,
+):
     root, output = root.resolve(), output.resolve()
     Softverse(root)
-    manifest = instrument(root, limit)
+    manifest = instrument(root, limit, r_tools, language, recover_release, deposit_list)
     output.mkdir(parents=True, exist_ok=True)
     manifest_path = output / "manifest.json"
     if (
@@ -312,6 +381,8 @@ def assess(root, output, limit=None, workers=1):
     write_json(manifest_path, manifest)
     cache = output / "cache"
     cache.mkdir(exist_ok=True)
+    native_cache = output / "native-cache"
+    native_cache.mkdir(exist_ok=True)
     frame = {
         r["collection_id"]
         for r in csv.DictReader((root / "data/frame/frame.csv").open())
@@ -332,8 +403,35 @@ def assess(root, output, limit=None, workers=1):
             groups[version].append(row)
     env = environment_index(root, {r["file_uid"]: r["dataset_doi"] for r in rows})
     keys = sorted(groups, key=lambda k: hashlib.sha256(k.encode()).hexdigest())
+    if language:
+        keys = [
+            key
+            for key in keys
+            if any(
+                r["language"] in {language, "notebook", "rmarkdown"}
+                and eligibility(r)[0] != "excluded"
+                for r in groups[key]
+            )
+        ]
+    if deposit_list:
+        requested = set(json.loads(deposit_list.read_text()))
+        if not requested <= set(keys):
+            raise ValueError("Requested deposits fall outside the eligible frame")
+        keys = [key for key in keys if key in requested]
     if limit is not None:
         keys = keys[:limit]
+    if recover_release:
+        from .sources import restore_sources
+
+        manifest["restored_hashes"] = restore_sources(root, output, groups, keys)
+    from .sources import environment_evidence, metadata
+
+    selected_rows = [r for key in keys for r in groups[key]]
+    write_json(output / "metadata.json", metadata(root, selected_rows))
+    write_json(output / "environment.json", environment_evidence(root, selected_rows))
+    (output / "dictionary.json").write_bytes(
+        Path(__file__).with_name("metrics.json").read_bytes()
+    )
     writers = Tables(output)
     success = False
     try:
@@ -343,7 +441,18 @@ def assess(root, output, limit=None, workers=1):
             if len({r["collection_id"] for r in group}) != 1:
                 raise ValueError("Deposit maps to multiple collections")
             jobs.append((group, dict(env[group[0]["dataset_doi"]])))
-        for i, result in enumerate(ordered_results(root, cache, jobs, workers), 1):
+        for i, result in enumerate(
+            ordered_results(
+                root,
+                cache,
+                jobs,
+                workers,
+                r_tools=manifest["r_tools"],
+                native_cache=native_cache,
+                language_filter=language,
+            ),
+            1,
+        ):
             writers.write(result)
             if i % 25 == 0 or i == len(keys):
                 print(f"Assessed {i}/{len(keys)} deposits", flush=True)
@@ -360,5 +469,11 @@ def assess(root, output, limit=None, workers=1):
     manifest["output_hashes"] = {
         f"{name}.parquet": digest(output / f"{name}.parquet") for name in SCHEMAS
     }
+    manifest["output_hashes"].update(
+        {
+            name: digest(output / name)
+            for name in ("metadata.json", "environment.json", "dictionary.json")
+        }
+    )
     write_json(manifest_path, manifest)
     return manifest

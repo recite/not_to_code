@@ -4,237 +4,724 @@
     "definition": "Exact 30-token match union coverage, within file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Exact repeated code, 30 tokens (within)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_exact_between_30": {
     "dimension": "duplication",
     "definition": "Exact 30-token match union coverage, between file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Exact repeated code, 30 tokens (between)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_exact_union_30": {
     "dimension": "duplication",
     "definition": "Exact 30-token match union coverage, union file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Exact repeated code, 30 tokens (union)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_normalized_increment_30": {
     "dimension": "duplication",
     "definition": "Additional coverage after replacing identifiers/literals at 30 tokens",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Additional normalized matches, 30 tokens (union)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_exact_within_50": {
     "dimension": "duplication",
     "definition": "Exact 50-token match union coverage, within file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Exact repeated code, 50 tokens (within)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_exact_between_50": {
     "dimension": "duplication",
     "definition": "Exact 50-token match union coverage, between file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Exact repeated code, 50 tokens (between)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_exact_union_50": {
     "dimension": "duplication",
     "definition": "Exact 50-token match union coverage, union file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "indicator",
+    "attribute": "Maintainability",
+    "label": "Repeated code",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Repetition can be intentional. This measures exposure to coordinated edits, not inconsistent changes or defects."
   },
   "clone_normalized_increment_50": {
     "dimension": "duplication",
     "definition": "Additional coverage after replacing identifiers/literals at 50 tokens",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Additional normalized matches, 50 tokens (union)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_exact_within_100": {
     "dimension": "duplication",
     "definition": "Exact 100-token match union coverage, within file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Exact repeated code, 100 tokens (within)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_exact_between_100": {
     "dimension": "duplication",
     "definition": "Exact 100-token match union coverage, between file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Exact repeated code, 100 tokens (between)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_exact_union_100": {
     "dimension": "duplication",
     "definition": "Exact 100-token match union coverage, union file scope",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Exact repeated code, 100 tokens (union)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "clone_normalized_increment_100": {
     "dimension": "duplication",
     "definition": "Additional coverage after replacing identifiers/literals at 100 tokens",
     "denominator": "tokens",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "sensitivity",
+    "attribute": "Maintainability",
+    "label": "Additional normalized matches, 100 tokens (union)",
+    "unit": "proportion",
+    "rationale": "Repeated logic can require coordinated edits; missed copies can leave inconsistent corrections.",
+    "limit": "Counts originals and copies. Repetition can be intentional; normalized matches are not semantic equivalence."
   },
   "file_count": {
     "dimension": "organization",
     "definition": "Included candidate files",
     "denominator": "one",
     "scale": 1,
-    "coverage": "inventory"
+    "coverage": "inventory",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Source files",
+    "unit": "count",
+    "rationale": "Project size and organization help interpret differences between deposits.",
+    "limit": "Descriptive context; larger or smaller values are not inherently better."
   },
   "code_lines": {
     "dimension": "organization",
     "definition": "Code lines",
     "denominator": "one",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Code lines",
+    "unit": "count",
+    "rationale": "Project size and organization help interpret differences between deposits.",
+    "limit": "Descriptive context; larger or smaller values are not inherently better."
   },
   "token_count": {
     "dimension": "organization",
     "definition": "Code and structural tokens",
     "denominator": "one",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Code tokens",
+    "unit": "count",
+    "rationale": "Project size and organization help interpret differences between deposits.",
+    "limit": "Descriptive context; larger or smaller values are not inherently better."
   },
   "median_file_lines": {
     "dimension": "organization",
     "definition": "Median code lines per measured file",
     "denominator": "one",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Typical file length",
+    "unit": "count",
+    "rationale": "Project size and organization help interpret differences between deposits.",
+    "limit": "Descriptive context; larger or smaller values are not inherently better."
   },
   "largest_file_share": {
     "dimension": "organization",
     "definition": "Largest measured file code lines / measured code lines",
     "denominator": "code_lines",
     "scale": 1,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Code in the largest file",
+    "unit": "proportion",
+    "rationale": "Project size and organization help interpret differences between deposits.",
+    "limit": "Descriptive context; larger or smaller values are not inherently better."
   },
   "routine_count": {
     "dimension": "structure",
     "definition": "Named and anonymous routines/programs",
     "denominator": "one",
     "scale": 1,
-    "coverage": "structure"
+    "coverage": "structure",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Functions or programs",
+    "unit": "count",
+    "rationale": "Project size and organization help interpret differences between deposits.",
+    "limit": "Descriptive context; larger or smaller values are not inherently better."
   },
   "median_routine_lines": {
     "dimension": "structure",
     "definition": "Median routine code-line length",
     "denominator": "one",
     "scale": 1,
-    "coverage": "structure"
+    "coverage": "structure",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "indicator",
+    "attribute": "Maintainability",
+    "label": "Typical function length",
+    "unit": "lines",
+    "rationale": "Smaller coherent functions can make local reasoning and changes easier.",
+    "limit": "No routines is inapplicable, not zero length. Shorter functions are not invariably better."
   },
   "max_routine_lines": {
     "dimension": "structure",
     "definition": "Maximum routine code-line length",
     "denominator": "one",
     "scale": 1,
-    "coverage": "structure"
+    "coverage": "structure",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Longest function or program",
+    "unit": "count",
+    "rationale": "Project size and organization help interpret differences between deposits.",
+    "limit": "Descriptive context; larger or smaller values are not inherently better."
   },
   "branch_count": {
     "dimension": "structure",
     "definition": "Recognized control-flow constructs",
     "denominator": "one",
     "scale": 1,
-    "coverage": "structure"
+    "coverage": "structure",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Control-flow constructs",
+    "unit": "count",
+    "rationale": "Project size and organization help interpret differences between deposits.",
+    "limit": "Descriptive context; larger or smaller values are not inherently better."
   },
   "max_nesting": {
     "dimension": "structure",
     "definition": "Maximum control-flow nesting, reset at routine boundaries",
     "denominator": "one",
     "scale": 1,
-    "coverage": "structure"
+    "coverage": "structure",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "indicator",
+    "attribute": "Readability",
+    "label": "Maximum nesting depth",
+    "unit": "levels",
+    "rationale": "Nested control flow requires readers to keep more conditions in mind.",
+    "limit": "A maximum grows with project size; complexity may be required by the task."
   },
   "top_level_share": {
     "dimension": "structure",
     "definition": "Code lines outside all routines",
     "denominator": "code_lines",
     "scale": 1,
-    "coverage": "structure"
+    "coverage": "structure",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Maintainability",
+    "label": "Code outside functions",
+    "unit": "proportion",
+    "rationale": "Encapsulation can make responsibilities and dependencies easier to isolate.",
+    "limit": "Linear analysis scripts can be appropriate. This is structural context, not a penalty."
   },
   "line_over_100": {
     "dimension": "formatting",
     "definition": "line over 100 findings per 1,000 measured code lines",
     "denominator": "code_lines",
     "scale": 1000,
-    "coverage": "token"
-  },
-  "trailing_whitespace": {
-    "dimension": "formatting",
-    "definition": "trailing whitespace findings per 1,000 measured code lines",
-    "denominator": "code_lines",
-    "scale": 1000,
-    "coverage": "token"
-  },
-  "mixed_indentation": {
-    "dimension": "formatting",
-    "definition": "mixed indentation findings per 1,000 measured code lines",
-    "denominator": "code_lines",
-    "scale": 1000,
-    "coverage": "token"
-  },
-  "absolute_path": {
-    "dimension": "portability",
-    "definition": "absolute path findings per 1,000 measured code lines",
-    "denominator": "code_lines",
-    "scale": 1000,
-    "coverage": "token"
-  },
-  "path_like_literal": {
-    "dimension": "portability",
-    "definition": "path like literal findings per 1,000 measured code lines",
-    "denominator": "code_lines",
-    "scale": 1000,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "python",
+      "stata"
+    ],
+    "role": "indicator",
+    "attribute": "Readability",
+    "label": "Long code lines",
+    "unit": "per 1,000 code lines",
+    "rationale": "Very long lines can make code harder to scan.",
+    "limit": "A formatting convention, not demonstrated comprehension or correctness; R uses native lintr instead."
   },
   "working_directory_change": {
     "dimension": "portability",
     "definition": "working directory change findings per 1,000 measured code lines",
     "denominator": "code_lines",
     "scale": 1000,
-    "coverage": "token"
+    "coverage": "token",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Working-directory changes",
+    "unit": "per 1,000 code lines",
+    "rationale": "Directory changes describe execution context that readers may need to reconstruct.",
+    "limit": "Lexical spelling matches do not establish a filesystem failure or resolve function identities."
   },
   "dependency_declaration": {
     "dimension": "environment",
     "definition": "Presence of observed dependency declaration evidence",
     "denominator": "one",
     "scale": 1,
-    "coverage": "environment"
+    "coverage": "environment",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "evidence",
+    "attribute": "Reproducibility",
+    "label": "Direct dependencies declared",
+    "unit": "binary",
+    "rationale": "Explicit requirements help others identify the packages the analysis needs.",
+    "limit": "Lockfiles record a resolved environment, not direct requirements. Unobserved does not mean absent from all documentation."
   },
   "version_constraint": {
     "dimension": "environment",
     "definition": "Presence of observed version constraint evidence",
     "denominator": "one",
     "scale": 1,
-    "coverage": "environment"
+    "coverage": "environment",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "evidence",
+    "attribute": "Reproducibility",
+    "label": "Dependency version constraints recorded",
+    "unit": "binary",
+    "rationale": "Recorded software requirements and versions can help reconstruct an environment.",
+    "limit": "Supported Softverse inventory evidence only, including bundled packages; absence is not verified lack of documentation, and presence does not establish restoration."
   },
   "locked_dependency": {
     "dimension": "environment",
     "definition": "Presence of observed locked dependency evidence",
     "denominator": "one",
     "scale": 1,
-    "coverage": "environment"
+    "coverage": "environment",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "evidence",
+    "attribute": "Reproducibility",
+    "label": "Locked dependencies recorded",
+    "unit": "binary",
+    "rationale": "Recorded package versions can reduce changes caused by different software environments.",
+    "limit": "Does not establish complete environment coverage, successful restoration, or that this environment produced the results."
   },
   "bundled_dependency": {
     "dimension": "environment",
     "definition": "Presence of observed bundled dependency evidence",
     "denominator": "one",
     "scale": 1,
-    "coverage": "environment"
+    "coverage": "environment",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "context",
+    "attribute": "Project context",
+    "label": "Bundled dependency evidence",
+    "unit": "binary",
+    "rationale": "Recorded software requirements and versions can help reconstruct an environment.",
+    "limit": "Supported Softverse inventory evidence only, including bundled packages; absence is not verified lack of documentation, and presence does not establish restoration."
   },
   "interpreter_version": {
     "dimension": "environment",
     "definition": "Presence of observed interpreter version evidence",
     "denominator": "one",
     "scale": 1,
-    "coverage": "environment"
+    "coverage": "environment",
+    "version": 2,
+    "source": "baseline",
+    "languages": [
+      "r",
+      "python",
+      "stata"
+    ],
+    "role": "evidence",
+    "attribute": "Reproducibility",
+    "label": "version recorded",
+    "unit": "binary",
+    "rationale": "Interpreter versions help explain and potentially reproduce version-dependent behavior.",
+    "limit": "A recorded version is not evidence that all deposited scripts used it; free-text documentation is not covered."
+  },
+  "indentation_linter": {
+    "attribute": "Readability",
+    "label": "Indentation findings",
+    "unit": "per 1,000 code lines",
+    "source": "lintr_rate",
+    "rationale": "Consistent indentation helps readers see code structure.",
+    "definition": "Selected lintr indentation findings per 1,000 measured nonblank, noncomment code lines; both measurements must be complete.",
+    "limit": "Conformance to lintr's convention, not a direct measure of comprehension; inline suppressions are honored.",
+    "version": 2,
+    "languages": [
+      "r"
+    ],
+    "role": "indicator",
+    "dimension": "readability",
+    "denominator": "code_lines",
+    "scale": 1000,
+    "coverage": "native"
+  },
+  "line_length_linter": {
+    "attribute": "Readability",
+    "label": "Long-line findings",
+    "unit": "per 1,000 code lines",
+    "source": "lintr_rate",
+    "rationale": "Very long lines can make code harder to scan.",
+    "definition": "Selected lintr findings for lines over 100 characters per 1,000 measured code lines; both measurements must be complete.",
+    "limit": "The 100-character threshold is a convention. Findings can concern comments and strings as well as code.",
+    "version": 2,
+    "languages": [
+      "r"
+    ],
+    "role": "indicator",
+    "dimension": "readability",
+    "denominator": "code_lines",
+    "scale": 1000,
+    "coverage": "native"
+  },
+  "duplicate_argument_linter": {
+    "attribute": "Implementation reliability",
+    "label": "Duplicate-argument candidates",
+    "unit": "binary",
+    "source": "lintr",
+    "rationale": "Repeated argument names can indicate an unintended call or cause an evaluation error.",
+    "definition": "At least one duplicate_argument_linter finding in a completely linted deposit.",
+    "limit": "Candidates require source context; presence does not establish an incorrect research result.",
+    "version": 2,
+    "languages": [
+      "r"
+    ],
+    "role": "indicator",
+    "dimension": "implementation reliability",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "native"
+  },
+  "equals_na_linter": {
+    "attribute": "Implementation reliability",
+    "label": "NA-comparison candidates",
+    "unit": "binary",
+    "source": "lintr",
+    "rationale": "Equality comparisons with NA can fail to implement the intended missing-value check.",
+    "definition": "At least one equals_na_linter finding in a completely linted deposit.",
+    "limit": "This is one narrow error pattern; no findings does not imply reliable code.",
+    "version": 2,
+    "languages": [
+      "r"
+    ],
+    "role": "indicator",
+    "dimension": "implementation reliability",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "native"
+  },
+  "stopifnot_present": {
+    "attribute": "Implementation reliability",
+    "label": "Explicit stopifnot checks",
+    "unit": "binary",
+    "source": "semantic",
+    "rationale": "Explicit assertions can detect violated assumptions before errors propagate.",
+    "definition": "At least one flowR-recognized base stopifnot call in a deposit with complete flowR processing.",
+    "limit": "Other assertion and testing APIs are not covered. Presence does not show execution or adequate checking.",
+    "version": 2,
+    "languages": [
+      "r"
+    ],
+    "role": "evidence",
+    "dimension": "implementation reliability",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "native"
+  },
+  "absolute-file-paths": {
+    "attribute": "Portability",
+    "label": "Absolute filesystem paths",
+    "unit": "binary",
+    "source": "flowR",
+    "rationale": "Machine-specific paths can require edits before another researcher can run the code.",
+    "definition": "At least one flowR absolute-file-paths finding in a deposit with complete flowR processing.",
+    "limit": "Some absolute paths are deliberate and portable within a specified environment; unresolved paths remain undetected.",
+    "version": 2,
+    "languages": [
+      "r"
+    ],
+    "role": "indicator",
+    "dimension": "portability",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "native"
+  },
+  "random_without_seed_call": {
+    "attribute": "Reproducibility",
+    "label": "Randomness with no supplied seed",
+    "unit": "binary",
+    "source": "randomness",
+    "rationale": "Uncontrolled random initialization can make repeated computations differ.",
+    "definition": "Among completely processed deposits with recognized stochastic calls: no recognized seed-setting call with a supplied non-NULL seed expression anywhere in the measured R code.",
+    "limit": "The API catalog is incomplete. A seed call can use a changing value or be unrelated to the random operation; RNG-state restoration and cross-file execution order are not resolved.",
+    "version": 2,
+    "languages": [
+      "r"
+    ],
+    "role": "evidence",
+    "dimension": "reproducibility",
+    "denominator": "one",
+    "scale": 1,
+    "coverage": "conditional_native"
   }
 }

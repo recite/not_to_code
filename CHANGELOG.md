@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.0
+
+Combines the established duplication and structure measures with native R analysis
+in one assessment and report. Readability, maintainability, implementation
+reliability, reproducibility and portability remain separate attributes.
+
+- Adds optional locked lintr and flowR analyzers for formatting, suspicious
+  expressions, argument-aware paths, assertions and conditional seed-call gaps.
+- Keeps all duplication thresholds, normalized matches and both source-eligibility
+  variants; adds paired sensitivity and collection/discipline/time summaries.
+- Separates quality indicators, supporting evidence, project context and
+  sensitivity measures. Removes weak lexical path and trivial whitespace metrics.
+- Freezes the measure dictionary, grouping metadata and native evidence with each
+  run. Distinguishes inventory evidence, analyzer failures and tools not run.
+- Supports container-only language candidates and exact-hash source recovery.
+
+Version 2 changes the output schema and metric set. Start a fresh output directory;
+regenerate older reports with their original instrument. Native R analysis needs
+Node and the locked R environment, installed from the source distribution or
+checkout. The historical full-frame results remain from 0.1.0; the new comparison
+covers 60 selected R deposits and does not establish a population trend or accuracy.
+
 ## 0.1.0
 
 First exploratory release of a static engineering-quality profile for deposited

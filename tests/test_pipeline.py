@@ -192,6 +192,52 @@ def test_nonpath_arguments(analyze, language, source):
     assert [f["rule"] for f in a.findings] == ["path_like_literal"]
 
 
+@pytest.mark.parametrize(
+    "language,call,prefix",
+    [
+        ("python", 'open("/tmp/a")', "x = 1\n"),
+        ("python", 'pathlib.Path("/tmp/a")', "x = 1\n"),
+        ("python", 'open(\n    "/tmp/a"\n)', "x = 1\n"),
+        ("python", '1 + open("/tmp/a")', "x = 1\n"),
+        ("r", 'read.csv("/tmp/a")', "x <- 1\n"),
+        ("r", 'utils::read.csv("/tmp/a")', "x <- 1\n"),
+        ("r", 'read.csv(\n    "/tmp/a"\n)', "x <- 1; "),
+    ],
+)
+def test_path_call_recognition_ignores_unrelated_statements(
+    analyze, language, call, prefix
+):
+    for source in (call, prefix + call):
+        a = analyze(language, source)
+        assert [f["rule"] for f in a.findings] == ["absolute_path"]
+
+
+@pytest.mark.parametrize(
+    "language,source",
+    [
+        ("python", 'x = "open"\n("/tmp/a")'),
+        ("python", 'open\n("/tmp/a")'),
+        ("r", '"read.csv"\n("/tmp/a")'),
+        ("r", 'read.csv\n("/tmp/a")'),
+        ("python", 'open(("/tmp/a"))'),
+    ],
+)
+def test_path_call_recognition_keeps_token_boundaries(analyze, language, source):
+    a = analyze(language, source)
+    assert [f["rule"] for f in a.findings] == ["path_like_literal"]
+
+
+@pytest.mark.parametrize("prefix", ["", "async "])
+def test_directory_change_requires_call_not_definition(analyze, prefix):
+    a = analyze("python", prefix + "def chdir(path):\n    return path\n")
+    assert not a.findings
+    a = analyze("python", prefix + 'def chdir(path):\n    os.chdir("/tmp/a")\n')
+    assert [f["rule"] for f in a.findings] == [
+        "working_directory_change",
+        "absolute_path",
+    ]
+
+
 def test_else_nesting(analyze):
     a = analyze("stata", "if x {\n display 1\n}\nelse {\n if y {\n display 2\n }\n}\n")
     assert a.max_nesting == 2
@@ -257,3 +303,75 @@ def test_unrecognized_notebook_magic_is_unresolved(adapter, magic):
     }
     units = adapter.units(dict(file_uid="a", language="notebook"), json.dumps(payload))
     assert units[0].language == "unknown"
+
+
+def test_unified_pipeline_includes_container_only_r(tmp_path, adapter, monkeypatch):
+    from not_to_code import pipeline
+
+    monkeypatch.setattr(pipeline, "Softverse", lambda root: adapter)
+    root = tmp_path / "softverse"
+    upstream = Path(adapter.stata.__file__).parents[2]
+    shutil.copytree(
+        upstream / "softverse",
+        root / "softverse",
+        ignore=shutil.ignore_patterns("__pycache__"),
+    )
+    (root / "data/frame").mkdir(parents=True)
+    (root / "data/frame/frame.csv").write_text(
+        "collection_id,discipline\njournal,test\n"
+    )
+    tally = root / "build/tally"
+    tally.mkdir(parents=True)
+    source = tmp_path / "analysis.Rmd"
+    source.write_text("Prose\n```{r}\nrnorm(1)\n```\n")
+    pq.write_table(
+        pa.Table.from_pylist([row(source, "rmarkdown")]), tally / "files.parquet"
+    )
+    for name in ("declared_dependencies", "environment_signals"):
+        pq.write_table(
+            pa.table({"source_file_uid": pa.array([], type=pa.string())}),
+            tally / f"{name}.parquet",
+        )
+    monkeypatch.setattr(pipeline, "tool_contract", lambda tools: {"root": "unused"})
+    calls = []
+
+    def analyze_unit(unit, readable, contract, cache):
+        assert readable
+        calls.append(unit.source)
+        return {
+            "lintr": {"status": "processed", "findings": []},
+            "flowR": {
+                "status": "processed",
+                "calls": [{"kind": "stochastic"}],
+                "results": {
+                    "linter": {"results": {"absolute-file-paths": {"results": []}}}
+                },
+            },
+        }
+
+    monkeypatch.setattr(pipeline, "analyze_unit", analyze_unit)
+    output = tmp_path / "output"
+    manifest = pipeline.assess(root, output, language="r", r_tools=tmp_path)
+    assert manifest["deposits"] == 1
+    assert len(calls) == 1
+    metrics = pq.read_table(output / "metrics.parquet").to_pylist()
+    seeds = [r for r in metrics if r["metric"] == "random_without_seed_call"]
+    assert {r["variant"] for r in seeds} == {"primary", "exclude_uncertain"}
+    assert all(r["status"] == "complete" and r["value"] == 1 for r in seeds)
+    native = pq.read_table(output / "native.parquet").to_pylist()
+    assert len(native) == 2 and all(r["first_line"] == 3 for r in native)
+    assert (output / "dictionary.json").read_bytes() == Path(
+        pipeline.__file__
+    ).with_name("metrics.json").read_bytes()
+    report(output)
+    assert (output / "paired-sensitivity.csv").exists()
+
+
+def test_unreadable_native_source_has_no_content_hash(tmp_path, adapter):
+    source = tmp_path / "missing.R"
+    source.write_text("rnorm(1)\n")
+    entry = row(source, "r")
+    source.unlink()
+    result = process_deposit([entry], adapter, {})
+    assert result["native"]
+    assert all(r["source_sha256"] is None for r in result["native"])

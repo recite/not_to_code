@@ -1,15 +1,14 @@
-"""Equal-deposit descriptive summaries and a standalone, escaped HTML report."""
+"""One aggregation path for the versioned measurement profile and its reports."""
 
 import csv
-import html
 import json
 from collections import Counter, defaultdict
 from pathlib import Path
+from statistics import median
 
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from .assessment import REGISTRY
 from .pipeline import digest, write_json
 
 
@@ -23,14 +22,15 @@ def quantile(values, probability):
     return values[lo] + (values[hi] - values[lo]) * (pos - lo)
 
 
-def summarize(rows):
+def summarize(rows, group_by=None):
     groups = defaultdict(list)
     for row in rows:
-        groups[(row["language"], row["variant"], row["metric"])].append(row)
+        group = str(row.get(group_by) or "Unknown") if group_by else "All"
+        groups[(group, row["language"], row["variant"], row["metric"])].append(row)
     result = []
-    for (language, variant, metric), entries in sorted(groups.items()):
+    for (group, language, variant, metric), entries in sorted(groups.items()):
         counts = Counter(r["status"] for r in entries)
-        for population in ("complete", "partial"):
+        for population in ("complete", "partial", "inventory_only"):
             values = [
                 r["value"]
                 for r in entries
@@ -38,20 +38,32 @@ def summarize(rows):
             ]
             result.append(
                 dict(
+                    group_by=group_by or "all",
+                    group=group,
                     language=language,
                     variant=variant,
                     metric=metric,
                     population=population,
                     deposits=len(entries),
                     n=len(values),
-                    complete=counts["complete"],
-                    partial=counts["partial"],
-                    missing=counts["missing"],
-                    inapplicable=counts["inapplicable"],
-                    unsupported=counts["unsupported"],
+                    **{
+                        k: counts[k]
+                        for k in (
+                            "complete",
+                            "partial",
+                            "missing",
+                            "inapplicable",
+                            "unsupported",
+                            "not_measured",
+                            "inventory_only",
+                        )
+                    },
                     q25=quantile(values, 0.25),
                     median=quantile(values, 0.5),
                     q75=quantile(values, 0.75),
+                    minimum=min(values) if values else None,
+                    maximum=max(values) if values else None,
+                    zero=sum(v == 0 for v in values),
                     prevalence=(
                         sum(v > 0 for v in values) / len(values) if values else None
                     ),
@@ -60,24 +72,43 @@ def summarize(rows):
     return result
 
 
-def table(rows, fields):
-    def fmt(value):
-        if value is None:
-            return "—"
-        if isinstance(value, float):
-            return f"{value:.4g}"
-        return html.escape(str(value))
-
-    return (
-        "<table><thead><tr>"
-        + "".join(f"<th>{html.escape(f)}</th>" for f in fields)
-        + "</tr></thead><tbody>"
-        + "".join(
-            "<tr>" + "".join(f"<td>{fmt(r.get(f))}</td>" for f in fields) + "</tr>"
-            for r in rows
+def paired_sensitivity(rows):
+    groups = defaultdict(dict)
+    for row in rows:
+        if row["status"] == "complete" and row["value"] is not None:
+            key = (row["language"], row["metric"])
+            groups[key].setdefault(row["dataset_version_uid"], {})[row["variant"]] = (
+                row["value"]
+            )
+    result = []
+    for (language, metric), deposits in sorted(groups.items()):
+        paired = [
+            v for v in deposits.values() if set(v) == {"primary", "exclude_uncertain"}
+        ]
+        result.append(
+            dict(
+                language=language,
+                metric=metric,
+                paired_deposits=len(paired),
+                primary_median=median(v["primary"] for v in paired) if paired else None,
+                exclude_uncertain_median=(
+                    median(v["exclude_uncertain"] for v in paired) if paired else None
+                ),
+                median_change=(
+                    median(v["exclude_uncertain"] - v["primary"] for v in paired)
+                    if paired
+                    else None
+                ),
+            )
         )
-        + "</tbody></table>"
-    )
+    return result
+
+
+def write_csv(path, rows):
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]) if rows else [])
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def report(output, readme=None):
@@ -85,7 +116,7 @@ def report(output, readme=None):
     if not manifest.get("completed"):
         raise ValueError("Assessment is incomplete")
     if (
-        digest(Path(__file__).with_name("metrics.json"))
+        digest(output / "dictionary.json")
         != manifest["instrument_hashes"]["metrics.json"]
     ):
         raise ValueError("Metric dictionary differs from assessment instrument")
@@ -95,6 +126,7 @@ def report(output, readme=None):
     for name, count in manifest["output_rows"].items():
         if pq.read_metadata(output / f"{name}.parquet").num_rows != count:
             raise ValueError(f"Row count mismatch: {name}")
+    registry = json.loads((output / "dictionary.json").read_text())
     metrics = pq.read_table(output / "metrics.parquet").to_pylist()
     keys = [
         (r["dataset_version_uid"], r["language"], r["variant"], r["metric"])
@@ -103,146 +135,46 @@ def report(output, readme=None):
     if len(keys) != len(set(keys)):
         raise ValueError("Duplicate deposit metrics")
     for row in metrics:
+        if row["metric"] not in registry:
+            raise ValueError("Unknown metric")
         if row["measured_units"] > row["eligible_units"]:
             raise ValueError("Invalid coverage denominator")
         if (
-            row["metric"].startswith("clone_")
+            registry[row["metric"]]["unit"] in {"proportion", "binary"}
             and row["value"] is not None
             and not 0 <= row["value"] <= 1
         ):
-            raise ValueError("Invalid clone coverage")
-    summary = summarize(metrics)
-    schema = pa.schema(
-        [
-            (
-                k,
-                (
-                    pa.string()
-                    if k in {"language", "variant", "metric", "population"}
-                    else (
-                        pa.float64()
-                        if k in {"q25", "median", "q75", "prevalence"}
-                        else pa.int64()
-                    )
-                ),
-            )
-            for k in (
-                "language",
-                "variant",
-                "metric",
-                "population",
-                "deposits",
-                "n",
-                "complete",
-                "partial",
-                "missing",
-                "inapplicable",
-                "unsupported",
-                "q25",
-                "median",
-                "q75",
-                "prevalence",
-            )
-        ]
-    )
+            raise ValueError("Invalid bounded measurement")
+    metadata = json.loads((output / "metadata.json").read_text())
+    enriched = [dict(r, **metadata[r["dataset_version_uid"]]) for r in metrics]
+    summary = summarize(enriched)
+    write_csv(output / "summary.csv", summary)
     pq.write_table(
-        pa.Table.from_pylist(summary, schema=schema),
-        output / "summary.parquet",
-        compression="zstd",
+        pa.Table.from_pylist(summary), output / "summary.parquet", compression="zstd"
     )
-    with (output / "summary.csv").open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=schema.names)
-        writer.writeheader()
-        writer.writerows(summary)
-    coverage = Counter()
+    write_csv(output / "measurements.csv", enriched)
+    for group in ("collection", "discipline", "deposit_year", "period"):
+        write_csv(output / f"by-{group}.csv", summarize(enriched, group))
+    sensitivity = paired_sensitivity(metrics)
+    write_csv(output / "paired-sensitivity.csv", sensitivity)
+    counts = Counter()
     for batch in pq.ParquetFile(output / "ledger.parquet").iter_batches(
         columns=["language", "eligibility", "read_status"]
     ):
-        coverage.update(
+        counts.update(
             (r["language"], r["eligibility"], r["read_status"])
             for r in batch.to_pylist()
         )
-    ledger = [
-        dict(language=k[0], eligibility=k[1], read_status=k[2], files=n)
-        for k, n in sorted(coverage.items())
-    ]
-    write_json(output / "coverage.json", ledger)
-    unit_counts = Counter()
-    for batch in pq.ParquetFile(output / "units.parquet").iter_batches(
-        columns=["language", "token_status", "structure_status"]
-    ):
-        unit_counts.update(
-            (r["language"], r["token_status"], r["structure_status"])
-            for r in batch.to_pylist()
-        )
-    unit_coverage = [
-        dict(language=k[0], token_status=k[1], structure_status=k[2], units=n)
-        for k, n in sorted(unit_counts.items())
-    ]
-    write_json(output / "unit_coverage.json", unit_coverage)
-    disclaimer = (
-        "Observable engineering properties of candidate research code. "
-        "No composite score or scientific-correctness claim. Medians weight "
-        "deposits equally within language; partial measurements are shown "
-        "separately. Environment zeros mean no recorded evidence. Clone "
-        "occurrences are unions of covered spans, not inferred "
-        "refactoring opportunities."
+    write_json(
+        output / "coverage.json",
+        [
+            dict(language=k[0], eligibility=k[1], read_status=k[2], files=n)
+            for k, n in sorted(counts.items())
+        ],
     )
-    body = [
-        "<!doctype html><meta charset='utf-8'><title>Research code profile</title>"
-        "<style>body{font:16px system-ui;margin:3rem;max-width:1500px;"
-        "color:#17232d}table{border-collapse:collapse;font-size:13px;"
-        "margin-bottom:2rem}th,td{text-align:left;padding:.45rem;"
-        "border-bottom:1px solid #ddd}th{background:#eff3f6;position:sticky;"
-        "top:0}code{overflow-wrap:anywhere}</style>",
-        "<h1>Research code engineering profile</h1>",
-        f"<p>{disclaimer}</p>",
-        f"<p>Assessed {manifest['deposits']:,} deposits. "
-        f"Run <code>{manifest['fingerprint']}</code>.</p>",
-    ]
-    if manifest["deposit_limit"] is not None:
-        body.append(
-            "<p><strong>Pilot subset: these are not full-frame estimates.</strong></p>"
-        )
-    for language in ("r", "python", "stata"):
-        body.append(f"<h2>{language}</h2>")
-        body.append(
-            table(
-                [r for r in summary if r["language"] == language],
-                [
-                    "variant",
-                    "metric",
-                    "population",
-                    "n",
-                    "deposits",
-                    "median",
-                    "q25",
-                    "q75",
-                    "prevalence",
-                    "missing",
-                    "inapplicable",
-                    "unsupported",
-                ],
-            )
-        )
-    body.append(
-        "<h2>Recovery and eligibility</h2>"
-        + table(ledger, ["language", "eligibility", "read_status", "files"])
-    )
-    body.append(
-        "<h2>Instrument coverage</h2>"
-        + table(
-            unit_coverage, ["language", "token_status", "structure_status", "units"]
-        )
-    )
-    body.append(
-        "<h2>Metric dictionary</h2>"
-        + table(
-            [dict(metric=k, **v) for k, v in REGISTRY.items()],
-            ["metric", "dimension", "definition", "denominator", "scale", "coverage"],
-        )
-    )
-    (output / "report.html").write_text("\n".join(body))
+    from .quality_report import render
+
+    render(output, enriched, summary, sensitivity, registry, manifest)
     selected = [
         r
         for r in summary
@@ -252,9 +184,15 @@ def report(output, readme=None):
     ]
     markdown = (
         f"Run `{manifest['fingerprint'][:12]}`; {manifest['deposits']:,} deposits"
-        + (" (pilot subset)" if manifest["deposit_limit"] is not None else "")
-        + ". Equal-deposit medians among complete measurements.\n\n"
-        "| Language | Property | Median | Complete / eligible deposits |\n"
+    )
+    markdown += (
+        " (selected subset)"
+        if manifest["deposit_limit"] is not None or manifest["deposit_list_hash"]
+        else ""
+    )
+    markdown += (
+        ". Equal-deposit medians among complete measurements.\n\n| "
+        "Language | Property | Median | Complete / eligible deposits |\n"
         "|---|---|---:|---:|\n"
     )
     for row in selected:
@@ -272,4 +210,19 @@ def report(output, readme=None):
         before, rest = text.split(start)
         _, after = rest.split(end)
         readme.write_text(before + start + "\n\n" + markdown + "\n" + end + after)
+    write_json(
+        output / "report-manifest.json",
+        {
+            "assessment_fingerprint": manifest["fingerprint"],
+            "renderer_hashes": {
+                p.name: digest(p)
+                for p in (Path(__file__), Path(__file__).with_name("quality_report.py"))
+            },
+            "outputs": {
+                p.name: digest(p)
+                for p in output.iterdir()
+                if p.suffix in {".html", ".csv", ".svg", ".pdf", ".md"}
+            },
+        },
+    )
     return summary

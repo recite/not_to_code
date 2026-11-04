@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "not-to-code"
-version = "0.1.0"
+version = "0.2.0"
 description = "A descriptive engineering-quality profile of deposited research code"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -20,6 +20,7 @@ dependencies = [
   "pyarrow>=18", "tree-sitter>=0.25,<0.26",
   "tree-sitter-language-pack==1.14.3",
   "charset-normalizer>=3.4",
+  "matplotlib>=3.10",
 ]
 
 [project.urls]
