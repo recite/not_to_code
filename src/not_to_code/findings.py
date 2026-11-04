@@ -55,14 +55,13 @@ def measure_findings(a: Analysis) -> None:
         if token.kind == "string":
             value = literal_value(token.value, a.unit.language)
             if ABSOLUTE.match(value):
-                # Require the literal to be the first argument, rather than an
-                # unrelated string on the same line as a filesystem call.
-                before = "".join(
-                    t.value
-                    for t in a.tokens[max(0, i - 4) : i]
-                    if t.kind != "structure"
+                before = a.tokens[max(0, i - 2) : i]
+                recognized = bool(
+                    len(before) == 2
+                    and before[0].kind == "identifier"
+                    and before[1].value == "("
+                    and FILESYSTEM[a.unit.language].fullmatch(before[0].value + "(")
                 )
-                recognized = bool(FILESYSTEM[a.unit.language].search(before))
                 if a.unit.language == "stata":
                     recognized = bool(FILESYSTEM["stata"].search(lines[token.line - 1]))
                 a.finding(
@@ -85,6 +84,7 @@ def measure_findings(a: Analysis) -> None:
             and a.unit.language == "python"
             and i + 1 < len(a.tokens)
             and a.tokens[i + 1].value == "("
+            and (i == 0 or a.tokens[i - 1].value != "def")
         ):
             a.finding(
                 "working_directory_change", token.line, token.col, lines[token.line - 1]

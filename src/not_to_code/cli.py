@@ -17,6 +17,14 @@ def main():
     scan.add_argument("--output", type=Path, required=True)
     scan.add_argument("--limit-deposits", type=int)
     scan.add_argument("--workers", type=int, default=1)
+    scan.add_argument("--r-tools", type=Path)
+    scan.add_argument("--language", choices=["r", "python", "stata"])
+    scan.add_argument("--recover-release", action="store_true")
+    scan.add_argument(
+        "--deposit-list",
+        type=Path,
+        help="JSON list of deposit-version IDs in the eligible frame",
+    )
     render = sub.add_parser("report")
     render.add_argument("--input", type=Path, required=True)
     render.add_argument("--readme", type=Path)
@@ -26,7 +34,16 @@ def main():
             parser.error("--limit-deposits must be positive")
         if args.workers < 1:
             parser.error("--workers must be positive")
-        assess(args.softverse_root, args.output, args.limit_deposits, args.workers)
+        assess(
+            args.softverse_root,
+            args.output,
+            args.limit_deposits,
+            args.workers,
+            args.r_tools,
+            args.language,
+            args.recover_release,
+            args.deposit_list,
+        )
         report(args.output)
     else:
         report(args.input, args.readme)

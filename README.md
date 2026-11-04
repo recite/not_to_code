@@ -1,10 +1,10 @@
-# not_to_code
+# Not to Code: Static Analysis of Research Code
 
 Static evidence about the engineering quality of research code: properties
 relevant to understanding, changing and relocating a project. Using the
 [Softverse](https://github.com/recite/softverse) inventory, this tool measures
-duplication, code structure, organization, formatting conventions, literal paths
-and recorded environment evidence in **R, Python and Stata**.
+duplication, code structure and recorded environment evidence in **R, Python
+and Stata**, with native R linting and call analysis through lintr and flowR.
 
 Use the profile to describe a collection or identify code for closer inspection.
 The measurements have not been validated against human maintenance effort and do
@@ -33,8 +33,8 @@ To reproduce the assessment from a source checkout, run from the repository root
 
 ```sh
 uv sync --locked --group dev
-uv run not-to-code assess --softverse-root ../softverse --output build/assessment --workers 4
-uv run not-to-code report --input build/assessment --readme README.md
+uv run not-to-code assess --softverse-root ../softverse --output build/assessment-v2 --workers 4
+uv run not-to-code report --input build/assessment-v2
 ```
 
 For a pilot, add `--limit-deposits 100` and use a different output directory.
@@ -51,8 +51,8 @@ These inputs come from the [Softverse recovery and inventory workflow](https://g
 Installing this package does not download the source corpus. The first release
 also includes an assessment archive containing the completed tables and report,
 so inspecting those results does not require recovering or scanning the corpus.
-Extract the archive and open `assessment/report.html`, or regenerate it with
-`not-to-code report --input assessment`.
+Extract the archive and open `assessment/report.html`. Regenerating historical
+reports requires their original instrument; version 2 uses a new schema.
 
 Rerunning the same command resumes from deposit caches after checking source
 hashes. Changed code, specifications, inputs or runtime versions require a fresh
@@ -65,13 +65,14 @@ versions and hashes independently.
 | Dimension | Observations |
 |---|---|
 | Duplication / DRY | Exact 50-token match coverage; 30/100-token sensitivity; within-file, between-file and union coverage; additional identifier/literal-normalized coverage |
-| Structure | Recognized control constructs, nesting, routine counts and code-line lengths |
-| Organization | File counts and sizes, largest-file share, code outside routines |
-| Formatting | Code lines over 100 characters, trailing whitespace, mixed indentation |
-| Portability | Recognized literal absolute filesystem paths, other path-looking literals, working-directory changes |
-| Environment | Recorded declarations, constraints, locks, bundled dependencies and interpreter-version evidence |
+| Readability / maintainability | Nesting and function length; native R indentation/line-length findings; Python/Stata long-line convention |
+| Implementation reliability | R duplicate-argument and NA-comparison candidates; recognized assertions |
+| Reproducibility | Recorded declarations, constraints, locks and interpreter versions; conditional R seed-call gap |
+| Portability | R absolute filesystem paths resolved in call context by flowR |
+| Context | Code size, file concentration, routine/control counts, code outside routines, working-directory changes and bundled dependencies |
 
-`metrics.json` in the package is the executable dictionary used by the report.
+`metrics.json` is the single executable dictionary; every run freezes it as
+`dictionary.json` for reporting.
 Rates retain numerators, denominators and coverage status. Zero, partial, missing,
 unsupported and inapplicable are distinct. Primary and exclude-uncertain variants
 are both produced; Softverse's deduplication flag is deliberately not an exclusion.
@@ -87,8 +88,40 @@ The output directory contains:
 | `clones.parquet` | Unions of matching token spans; these are not clone-family counts |
 | `metrics.parquet` | Deposit × language × sensitivity × metric values and denominators |
 | `summary.parquet`, `summary.csv` | Equal-deposit quartiles and prevalence, with complete/partial populations separate |
-| `coverage.json`, `unit_coverage.json` | Recovery, exclusions and instrument coverage |
+| `coverage.json` | Recovery, exclusions and instrument coverage |
+| `native.parquet` | R analyzer results, feature coverage and source-unit coordinates |
+| `dictionary.json`, `metadata.json`, `environment.json` | Frozen definitions, grouping metadata and environment evidence |
+| `by-*.csv`, `paired-sensitivity.csv` | Collection/discipline/time distributions and paired eligibility comparisons |
+| `report-manifest.json` | Report inputs, renderer and generated-output hashes |
 | `report.html`, `results.md` | Standalone report and generated README results |
+
+## R quality profile
+
+The unified profile organizes indicators around **readability, maintainability,
+implementation reliability, reproducibility and portability**. Each measure has
+an explicit rationale and interpretive limits. Its current purpose is to describe
+distributions and variation across collections and deposit years; testing whether
+structure predicts correctness is a separate future question.
+
+From a source checkout or extracted source distribution, use Node 22+ and the
+R version recorded in `tools/r-analysis/renv.lock` (currently 4.6.0). Restore the
+locked R analyzers into their own library:
+
+```sh
+npm ci --prefix tools/r-analysis --ignore-scripts
+Rscript --vanilla -e 'install.packages("renv", repos="https://cloud.r-project.org")'
+Rscript --vanilla -e 'renv::restore(lockfile="tools/r-analysis/renv.lock", library="tools/r-analysis/library", prompt=FALSE)'
+uv run not-to-code assess --softverse-root ../softverse --output build/profile-v2 --language r --r-tools tools/r-analysis --recover-release --limit-deposits 60 --workers 4
+```
+
+Open `build/profile-v2/report.html` for distributions, both eligibility variants,
+paired sensitivity and collection/time comparisons. The single registry assigns
+measures to indicators, evidence, context or sensitivity. Weak path guesses and
+trivial whitespace counts are excluded from the profile. Omit `--language` for
+all supported languages; omit `--r-tools` to mark native R measures as not run.
+See the [profile protocol](docs/quality-profile.md) for exact coverage and limits.
+Version 2 requires a fresh output directory; the historical full-frame results
+below remain results of the earlier instrument.
 
 ## Interpretation
 
@@ -147,7 +180,6 @@ make ci-docker
 `make check` runs Black, isort, flake8 and pytest. `make ci-docker` builds and tests
 the installed package in the standard `python:3.14-slim` image, with both repositories
 mounted read-only. `SOFTVERSE_ROOT` can point tests at another supported checkout.
-CI checks Python 3.11 and 3.14 using the pinned Softverse source checkout.
-
-The original R analysis and import-age tables are preserved in
-[`historical/`](historical/README.md); they are not inputs to the new measurements.
+CI checks Python 3.11 and 3.14 using the pinned Softverse source checkout, plus
+`make check-r` with locked native dependencies. The Python wheel contains the
+assessment package; the source distribution also includes `tools/r-analysis`.

@@ -1,7 +1,20 @@
 # Engineering properties of deposited research code
 
-Specification v1, 2026-10-04. This is a descriptive measurement study, not a
+Specification v2, 2026-11-03. This is a descriptive measurement study, not a
 validation of scientific results or a causal study of programming practices.
+
+## Version 2 consolidation
+
+The [unified profile protocol](docs/quality-profile.md) specifies the current
+producers and interpretations. One registry now covers baseline and native R
+measurements; its indicator, evidence, context and sensitivity roles govern
+reporting. Source/clone semantics below remain in force. The lexical path,
+path-looking literal, trailing-whitespace and mixed-indentation observations
+below are retained only as raw diagnostic findings, not quality-profile metrics.
+R formatting uses selected native lintr rules; code-line-length rates below
+remain the baseline Python/Stata convention. Environment evidence is explicitly
+`inventory_only`. Native measures use their own tool/feature coverage and both
+eligibility variants. Their absence is `not_measured`, never zero.
 
 ## Construct and estimand
 

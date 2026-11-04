@@ -4,6 +4,39 @@ This is a tested exploratory measurement instrument. No benchmark establishes a
 single latent code-quality score, maintenance effort, scientific correctness, or
 population precision/recall.
 
+## Version 2 consolidation, 2026-11-03
+
+The unified instrument passed Black, isort, flake8 and all 88 Python tests,
+both in the source checkout and against the installed wheel. Native checks passed
+31 Node tests and the R adapter checks. New cases cover native eligibility
+filtering, conditional seed denominators, feature-specific failures, matched lint
+rate denominators, container-only R selection, paired comparisons, and preserving
+changed local sources during exact-hash recovery. Source and wheel builds passed.
+Docker checks were attempted but could not run because the Docker daemon was
+unavailable; no new Docker validation is claimed.
+
+The fixed comparison cohort reuses the earlier pilot's 60 deposits; it is not a
+fresh representative sample. The completed run at
+`build/profile-v2-reviewed` has fingerprint
+`cd22acfe0a5e20ef943735c811d14df3cb9a8622e3fcc2359761bb8254af2438`.
+All 3,480 retained baseline rows match the earlier pilot's values, numerators,
+denominators and unit counts. Environment status is deliberately renamed
+`inventory_only`. A cached rerun reproduced all nine frozen output hashes.
+Locked native results were reused by source-and-tool-contract cache key; deposit
+aggregation was recomputed with the revised instrument.
+
+The run contains 973 inventory rows, 1,017 source units, 4,320 measurement rows,
+and 854 native tool records. Native records include failures and tools not run;
+these are not counts of successful measurements. Complete primary results retain
+median exact clone coverage of 35.7% (50 deposits), absolute-path findings in
+13/48, duplicate-argument candidates in 2/50, and a recognized seed-call gap in
+4/11 deposits with recognized stochastic calls. Another 39 completely processed
+deposits have no recognized stochastic calls and are inapplicable to that gap.
+
+The HTML report was inspected in desktop and mobile Chrome. Automated browser
+checks verified eligibility switching, linked artifacts and no page overflow at
+390 pixels. These are rendering checks, not evidence of measurement accuracy.
+
 ## Automated checks
 
 The test suite exercises actual measurements and output behavior:

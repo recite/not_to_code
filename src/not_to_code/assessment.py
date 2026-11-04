@@ -1,14 +1,11 @@
 """Deposit-level measurements and coverage, derived from the metric dictionary."""
 
-import json
 from collections import Counter, defaultdict
-from pathlib import Path
 from statistics import median
 
 from .duplicates import measure_duplicates
+from .registry import REGISTRY, measures
 from .structure import routine_lengths, top_level_lines
-
-REGISTRY = json.loads(Path(__file__).with_name("metrics.json").read_text())
 
 
 def assess_language(analyses, language, eligibility_by_uid, environment, variant):
@@ -53,13 +50,16 @@ def assess_language(analyses, language, eligibility_by_uid, environment, variant
         }
     )
     counts = Counter(f["rule"] for a in tokenized for f in a.findings)
-    for name, spec in REGISTRY.items():
+    applicable = measures(language, "baseline")
+    for name, spec in applicable.items():
         if spec["dimension"] in {"formatting", "portability"}:
             values[name] = (counts[name], lines)
         elif spec["dimension"] == "environment":
             values[name] = (int(name in environment), 1)
     rows = []
     for name, (numerator, denominator) in values.items():
+        if name not in applicable:
+            continue
         spec = REGISTRY[name]
         measured = (
             len(structured) if spec["coverage"] == "structure" else len(tokenized)
@@ -81,6 +81,8 @@ def assess_language(analyses, language, eligibility_by_uid, environment, variant
             value = None
         if value is None and status == "complete":
             status = "inapplicable"
+        if spec["coverage"] == "environment" and value is not None:
+            status = "inventory_only"
         if (
             language == "stata"
             and spec["dimension"] == "environment"
