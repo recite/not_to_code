@@ -31,7 +31,7 @@ Issues = "https://github.com/recite/not_to_code/issues"
 not-to-code = "not_to_code.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8", "black>=25", "isort>=6", "flake8>=7"]
+dev = ["pytest>=8", "black>=26.10.1", "isort>=6", "flake8>=7"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
