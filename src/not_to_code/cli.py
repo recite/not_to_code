@@ -3,6 +3,7 @@
 import argparse
 from pathlib import Path
 
+from .languages import LANGUAGES
 from .pipeline import assess
 from .report import report
 
@@ -18,7 +19,7 @@ def main():
     scan.add_argument("--limit-deposits", type=int)
     scan.add_argument("--workers", type=int, default=1)
     scan.add_argument("--r-tools", type=Path)
-    scan.add_argument("--language", choices=["r", "python", "stata"])
+    scan.add_argument("--language", choices=sorted(LANGUAGES))
     scan.add_argument("--recover-release", action="store_true")
     scan.add_argument(
         "--deposit-list",

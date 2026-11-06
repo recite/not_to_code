@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+Groups language-specific code by analysed language in `not_to_code.languages`
+(`r`, `python`, `stata`, `r_native`). Measurements are unchanged. The manifest's
+`instrument_hashes` now cover subpackages and are keyed by path within the package,
+so the run fingerprint changes: output directories from 0.2.0 cannot be resumed
+with this code.
+
 ## 0.2.0
 
 Combines the established duplication and structure measures with native R analysis

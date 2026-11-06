@@ -8,10 +8,10 @@ import sys
 import tokenize
 from pathlib import Path
 
+from .languages import LANGUAGES
 from .model import Unit
 
 SUPPORTED_EXTRACTOR = "2.4.0"
-LANGUAGES = {"r", "python", "stata"}
 
 
 class Softverse:

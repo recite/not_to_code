@@ -1,6 +1,6 @@
 import sys
 
-from not_to_code.native import invoke, substantive
+from not_to_code.languages.r_native import invoke, substantive
 
 
 def test_failed_process_cannot_claim_processed():

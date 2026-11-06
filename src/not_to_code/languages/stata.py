@@ -1,16 +1,24 @@
-"""Position-preserving lexical instrument; does not validate Stata syntax."""
+"""Stata source: a position-preserving lexer that does not validate syntax.
+
+Statement prefixes and embedded-language detection come from Softverse's lexer.
+"""
 
 import re
 
-from .model import Token
+from ..model import Analysis, Token
 
+FILESYSTEM = re.compile(
+    r"^\s*(?:(?:qui\w*|cap\w*|noi\w*)\s+)*"
+    r"(?:cd|use|save|append|merge|import|export|insheet|outsheet|"
+    r"do|run|include|log|file)\b"
+)
 WORD = re.compile(
     r"[A-Za-z_][A-Za-z_0-9.]*|\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|==|!=|<=|>=|[&|]{2}|[^\s]"
 )
 DIRECTIVE = re.compile(r"#[ \t]*d(?:e(?:l(?:i(?:m(?:it?)?)?)?)?)?\s+(cr|;)")
 
 
-def tokens(source: str) -> list[Token]:
+def lex(source: str) -> list[Token]:
     result = []
     i, line, col = 0, 1, 1
     semicolon = False
@@ -137,3 +145,87 @@ def tokens(source: str) -> list[Token]:
     if result and result[-1].value != "<STMT>":
         emit("<STMT>", "structure")
     return result
+
+
+def read_tokens(a: Analysis, adapter) -> None:
+    try:
+        a.tokens = lex(a.unit.source)
+        if any(
+            t.kind == "keyword" and t.value.lower() in {"mata", "python", "rsource"}
+            for t in a.tokens
+        ) or any(
+            (st.command or "").lower() in {"mata", "python", "rsource"}
+            for st in adapter.stata.lex(a.unit.source)
+        ):
+            a.token_status = "partial"
+            a.detail = "Embedded language: whole source unit withheld"
+            a.tokens.clear()
+    except ValueError as exc:
+        a.token_status, a.detail = "failed", str(exc)
+        a.tokens.clear()
+
+
+def read_structure(a: Analysis, adapter) -> None:
+    blocks = []
+    routine_start = None
+    statement = []
+    for token in a.tokens:
+        if token.value not in {"<STMT>", "{", "}"} or token.kind not in {
+            "structure",
+            "other",
+        }:
+            statement.append(token)
+            continue
+        if token.value == "}":
+            if blocks:
+                blocks.pop()
+            else:
+                a.structure_status = "partial"
+        text = " ".join(t.value for t in statement)
+        if statement:
+            _, rest = adapter.stata._strip_prefixes(text.split())
+            head = rest[0].lower().rstrip(":,") if rest else ""
+            if "`" in head or "$" in head or head in {"mata", "python", "rsource"}:
+                a.structure_status, a.detail = "partial", "Dynamic or embedded language"
+            if re.match(
+                r"^(?:pr|pro|prog|progr|progra|program)\s+(?!(?:drop|list|dir)\b)",
+                " ".join(rest),
+            ):
+                routine_start = statement[0].line
+                blocks = []
+            elif head == "end" and routine_start is not None:
+                a.routines.append((routine_start, token.line))
+                routine_start = None
+                blocks = []
+            control = head in {
+                "if",
+                "foreach",
+                "forvalues",
+                "forval",
+                "forv",
+                "while",
+            } or bool(head == "else" and re.match(r"else\s+if\b", text))
+            if control:
+                a.branch_count += 1
+                a.max_nesting = max(a.max_nesting, sum(blocks) + 1)
+        else:
+            control = False
+        if token.value == "{":
+            blocks.append(control or bool(statement and head == "else"))
+        statement = []
+    if blocks or routine_start is not None:
+        a.structure_status, a.detail = "partial", "Unclosed Stata block"
+
+
+def read_string(text: str) -> str:
+    if text.startswith('`"') and text.endswith("\"'"):
+        return text[2:-2]
+    return text.strip("\"'")
+
+
+def is_filesystem_call(tokens, i, lines) -> bool:
+    return bool(FILESYSTEM.search(lines[tokens[i].line - 1]))
+
+
+def is_directory_change(tokens, i) -> bool:
+    return tokens[i].value == "cd" and tokens[i].kind == "keyword"

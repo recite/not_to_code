@@ -4,8 +4,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
+from not_to_code.languages.r_native import assess_native
 from not_to_code.model import Analysis, Unit
-from not_to_code.native import assess_native
 from not_to_code.registry import REGISTRY
 from not_to_code.report import paired_sensitivity, summarize
 from not_to_code.sources import restore_sources

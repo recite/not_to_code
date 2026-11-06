@@ -183,3 +183,15 @@ mounted read-only. `SOFTVERSE_ROOT` can point tests at another supported checkou
 CI checks Python 3.11 and 3.14 using the pinned Softverse source checkout, plus
 `make check-r` with locked native dependencies. The Python wheel contains the
 assessment package; the source distribution also includes `tools/r-analysis`.
+
+### Code layout
+
+The tool is written in Python and analyses R, Python and Stata. Code that is
+specific to one analysed language is in one place:
+
+| Path | Holds |
+| --- | --- |
+| `src/not_to_code/languages/r.py`, `python.py`, `stata.py` | Each language's tokens, control-flow structure, and path and working-directory rules, behind the same five functions |
+| `src/not_to_code/languages/r_native.py` | Calls lintr and flowR and turns their output into deposit metrics |
+| `tools/r-analysis/` | The R and Node programs that `r_native.py` runs |
+| the rest of `src/not_to_code/` | Shared by all languages: source extraction, duplication, the metric dictionary, aggregation, storage and reports |

@@ -6,7 +6,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from .registry import measures
+from ..registry import measures
 
 
 def substantive(value):

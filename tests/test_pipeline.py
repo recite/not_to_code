@@ -142,6 +142,9 @@ def test_cli_resume_and_changed_inputs(tmp_path, adapter):
     first = subprocess.run(command, text=True, capture_output=True)
     assert first.returncode == 0, first.stderr
     manifest = json.loads((output / "manifest.json").read_text())
+    assert {"pipeline.py", "metrics.json", "languages/r.py"} <= set(
+        manifest["instrument_hashes"]
+    )
     metrics = pq.read_table(output / "metrics.parquet").to_pylist()
     exact = next(r for r in metrics if r["metric"] == "clone_exact_union_50")
     assert exact["value"] == 1

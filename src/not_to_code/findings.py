@@ -1,39 +1,11 @@
 """Narrow, inspectable formatting and portability observations."""
 
-import ast
 import re
 
+from .languages import LANGUAGES
 from .model import Analysis
 
 ABSOLUTE = re.compile(r"^(?:/[^ /]|[A-Za-z]:[/\\]|\\\\[^\\]+\\)")
-FILESYSTEM = {
-    "python": re.compile(
-        r"\b(?:open|Path|read_csv|read_table|read_excel|to_csv|save|load|chdir|"
-        r"read_parquet|write_parquet)\s*\($"
-    ),
-    "r": re.compile(
-        r"\b(?:setwd|read\.[A-Za-z0-9_.]+|read_[A-Za-z0-9_]+|"
-        r"write\.[A-Za-z0-9_.]+|write_[A-Za-z0-9_]+|load|save|saveRDS|"
-        r"readRDS|source|file|dir\.create)\s*\($"
-    ),
-    "stata": re.compile(
-        r"^\s*(?:(?:qui\w*|cap\w*|noi\w*)\s+)*"
-        r"(?:cd|use|save|append|merge|import|export|insheet|outsheet|"
-        r"do|run|include|log|file)\b"
-    ),
-}
-
-
-def literal_value(text: str, language: str) -> str:
-    if language in {"python", "r"}:
-        try:
-            value = ast.literal_eval(text)
-            return value if isinstance(value, str) else ""
-        except (ValueError, SyntaxError):
-            return ""
-    if language == "stata" and text.startswith('`"') and text.endswith("\"'"):
-        return text[2:-2]
-    return text.strip("\"'")
 
 
 def measure_findings(a: Analysis) -> None:
@@ -51,49 +23,22 @@ def measure_findings(a: Analysis) -> None:
         prefix = line[: len(line) - len(line.lstrip(" \t"))]
         if " " in prefix and "\t" in prefix:
             a.finding("mixed_indentation", n, 1, line)
+    language = LANGUAGES.get(a.unit.language)
+    if not language:
+        return
     for i, token in enumerate(a.tokens):
-        if token.kind == "string":
-            value = literal_value(token.value, a.unit.language)
-            if ABSOLUTE.match(value):
-                before = a.tokens[max(0, i - 2) : i]
-                recognized = bool(
-                    len(before) == 2
-                    and before[0].kind == "identifier"
-                    and before[1].value == "("
-                    and FILESYSTEM[a.unit.language].fullmatch(before[0].value + "(")
-                )
-                if a.unit.language == "stata":
-                    recognized = bool(FILESYSTEM["stata"].search(lines[token.line - 1]))
-                a.finding(
-                    "absolute_path" if recognized else "path_like_literal",
-                    token.line,
-                    token.col,
-                    token.value,
-                )
-        if (
-            token.value == "setwd"
-            and a.unit.language == "r"
-            and i + 1 < len(a.tokens)
-            and a.tokens[i + 1].value == "("
-        ):
+        if token.kind == "string" and ABSOLUTE.match(language.read_string(token.value)):
             a.finding(
-                "working_directory_change", token.line, token.col, lines[token.line - 1]
+                (
+                    "absolute_path"
+                    if language.is_filesystem_call(a.tokens, i, lines)
+                    else "path_like_literal"
+                ),
+                token.line,
+                token.col,
+                token.value,
             )
-        if (
-            token.value == "chdir"
-            and a.unit.language == "python"
-            and i + 1 < len(a.tokens)
-            and a.tokens[i + 1].value == "("
-            and (i == 0 or a.tokens[i - 1].value != "def")
-        ):
-            a.finding(
-                "working_directory_change", token.line, token.col, lines[token.line - 1]
-            )
-        if (
-            token.value == "cd"
-            and a.unit.language == "stata"
-            and token.kind == "keyword"
-        ):
+        if language.is_directory_change(a.tokens, i):
             a.finding(
                 "working_directory_change", token.line, token.col, lines[token.line - 1]
             )

@@ -14,12 +14,13 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
-from .adapter import LANGUAGES, Softverse, eligibility
+from .adapter import Softverse, eligibility
 from .assessment import assess_language
 from .findings import measure_findings
+from .languages import LANGUAGES
+from .languages.r_native import analyze_unit, assess_native, tool_contract
 from .lexical import tokenize_unit
 from .model import Analysis, Unit
-from .native import analyze_unit, assess_native, tool_contract
 from .storage import SCHEMAS, Tables
 from .structure import measure_structure
 
@@ -144,8 +145,8 @@ def instrument(
         input_hashes={p: digest(root / p) for p in inputs},
         upstream_hashes={p: digest(root / p) for p in upstream},
         instrument_hashes={
-            p.name: digest(p)
-            for p in sorted(package.iterdir())
+            p.relative_to(package).as_posix(): digest(p)
+            for p in sorted(package.rglob("*"))
             if p.suffix in {".py", ".json"}
         },
         versions=versions,
@@ -186,7 +187,8 @@ def process_deposit(
             detail="",
         )
         result["ledger"].append(entry)
-        if state == "excluded" or row["language"] not in LANGUAGES | {
+        if state == "excluded" or row["language"] not in {
+            *LANGUAGES,
             "notebook",
             "rmarkdown",
         }:
