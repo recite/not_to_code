@@ -187,7 +187,7 @@ assessment package; the source distribution also includes `tools/r-analysis`.
 ### Code layout
 
 The tool is written in Python and analyses R, Python and Stata. Code that is
-specific to one analysed language is in one place:
+specific to one analyzed language is in one place:
 
 | Path | Holds |
 | --- | --- |

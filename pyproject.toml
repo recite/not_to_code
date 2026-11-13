@@ -44,3 +44,8 @@ packages = ["src/not_to_code"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "measurement.md" = "not_to_code/measurement.md"
+
+[tool.codespell]
+builtin = "clear,rare,en-GB_to_en-US"
+skip = "*.pdf,*.png,*.jpg,*.jpeg,*.gif,*.csv,*.tsv,*.json,*.geojson,*.graphml,*.ipynb,*.html,*.svg,*.bib,*.bbl,*.lock,*.parquet,*.rda,*.rds,*.RData,*.dta,*.xlsx,*.xml,*.min.js,*.map,*.log,*.aux"
+ignore-words-list = "disjointness,mata,rsource"
